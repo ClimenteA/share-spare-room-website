@@ -1,0 +1,64 @@
+{% extends "cda/base.html" %}
+
+{% block main %}
+
+<div x-data="register_data" class="mt-6">
+
+    <form id="register"
+        class="small-form box p-6 is-flex is-flex-direction-column is-justify-content-center has-background-light"
+        @submit.prevent="register">
+
+        <h1 class="title is-4 has-text-grey mb-6">Creeaza un cont</h1>
+
+        <div class="field">
+            <label class="label">Email</label>
+            <div class="control">
+                <input x-model="email" name="email" class="input is-large" type="email" placeholder="dan@gmail.com"
+                    required>
+            </div>
+            <p x-cloak x-show="registeredemail" class="help is-danger">Acest email este deja inregistrat</p>
+            <p x-cloak x-show="invalidemailorpass" class="help is-danger">Emailul sau parola nu corespund cerintelor</p>
+        </div>
+
+        <div class="field">
+            <label class="label">Parola</label>
+            <div class="control">
+                <input x-model="parola" name="parola" class="input is-large" type="password" placeholder="******"
+                    required>
+            </div>
+            <p x-cloak x-show="invalidpass" class="help is-danger">Parolele nu sunt la fel</p>
+            <p x-cloak x-show="invalidemailorpass" class="help is-danger">Emailul sau parola nu corespund cerintelor</p>
+        </div>
+
+        <div class="field">
+            <label class="label">Confirma Parola</label>
+            <div class="control">
+                <input x-model="confirmaparola" name="confirmaparola" class="input is-large" type="password"
+                    placeholder="******" required>
+            </div>
+            <p x-cloak x-show="invalidpass" class="help is-danger">Parolele nu sunt la fel</p>
+            <p x-cloak x-show="invalidemailorpass" class="help is-danger">Emailul sau parola nu corespund cerintelor</p>
+        </div>
+
+
+        <div class="field">
+            <div class="control">
+                <label class="checkbox">
+                    <input x-model="conditiiacceptate" name="conditiiacceptate" type="checkbox">
+                    Sunt de acord cu <a href="/cda/termeni-si-conditii">termenii si conditiile</a>
+                </label>
+            </div>
+            <p x-cloak x-show="invalidconditii" class="help is-danger">Conditiile nu sunt acceptate</p>
+        </div>
+
+        <button type="submit" x-bind:class="loading ? 'is-loading' : ''" class="button is-link is-large mt-4">Creeaza
+            contul</button>
+
+        <a class="mt-4 is-align-self-flex-end" href="/cda/autentificare">Am deja un cont</a>
+
+    </form>
+
+</div>
+
+
+{% endblock main %}

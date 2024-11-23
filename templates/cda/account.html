@@ -1,0 +1,81 @@
+{% extends "cda/base.html" %}
+{% import "cda/listing_macro.html" as listingMacro %}
+
+{% block main %}
+
+
+<section class="section">
+
+    <div style="max-width: 600px;"
+        class="box is-flex is-flex-direction-column is-align-items-center m-auto has-background-light">
+
+        {% if user.avatar %}
+        <figure class="image is-128x128 overflow-hidden m-auto">
+            <img loading="lazy" src="{{user.avatar}}">
+        </figure>
+        {% endif %}
+
+        <hgroup class="block mt-4 is-flex is-flex-direction-column is-align-items-center">
+            <h1 class="title is-4">{{user.nume}}</h1>
+        </hgroup>
+
+        <p class="block">
+            {% if user.descriere %}
+            {{user.descriere}}
+            {% endif %}
+        </p>
+
+        <div class="buttons">
+            <a class="button is-link is-light" href="/cda/logout-user">Iesi din cont</a>
+            <a class="button is-link is-light" href="/cda/actualizare-cont">Actualizeaza cont</a>
+            <a class="button is-danger is-light" href="/cda/delete-user">Sterge contul</a>
+        </div>
+    </div>
+
+</section>
+
+
+<section class="mt-6">
+    <div class="content has-text-grey">
+        <p>Aici vor aparea anunturile postate sau cele de care esti interesat.
+            Poti adauga un anunt dand <a href="/cda/adauga-anunt"><strong>click aici.</strong></a>
+            Poti cauta o camera adaugata de alti utilizatori si le poti trimite un mesaj daca esti interesat <a
+                href="/cda/anunturi"><strong>aici.</strong></a>
+            Poti avea doar un anunt activ gratis,
+            <a href="/cda/admin/contact">
+                <strong>
+                    pentru mai multe anunturi active poti achizitiona mai multe credite aici.
+                </strong>
+            </a>
+            Ca peste tot pe internet ai grija cu cine intri in contact.
+            Vorbiti intre voi sa vedeti daca ati fi ok ca si colegi de apartament.
+        </p>
+    </div>
+</section>
+
+{% if posted_listings %}
+
+<section class="mt-6">
+    <h1 class="title is-size-5 mb-6 has-text-grey">Anunturi postate</h1>
+    {% for listing in posted_listings %}
+    {{ listingMacro.render(logged, listing) }}
+    {% endfor %}
+</section>
+
+{% endif %}
+
+
+{% if interested_listings %}
+
+<section class="mt-6">
+    <h1 class="title is-size-5 mb-6 has-text-grey">Anunturi la care ai trimis mesaje</h1>
+    {% for listing in interested_listings %}
+    {{ listingMacro.render(logged, listing) }}
+    {% endfor %}
+</section>
+
+{% endif %}
+
+
+
+{% endblock main %}

@@ -1,0 +1,11 @@
+{% extends "cda/base.html" %}
+{% import "cda/listing_macro.html" as listingMacro %}
+
+{% block main %}
+
+<div class="mt-6">
+    {{ listingMacro.render(logged, listing) }}
+</div>
+
+
+{% endblock main %}

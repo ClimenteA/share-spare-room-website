@@ -1,0 +1,336 @@
+{% macro render(logged, listing) -%}
+
+<div x-data="send_message_data(
+        '{{ listing.listing_id }}',
+        '{{ listing.user_id }}',
+        {% filter lower %}{{ listing.current_user_is_owner }}{% endfilter %}
+    )" style="position: relative;">
+
+    <div class="modal" x-bind:class="showMsgModal ? 'is-active': ''">
+        <div x-on:click="showMsgModal = !showMsgModal" class="modal-background"></div>
+        <div class="modal-card" style="height: 100%;">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Mesaje</p>
+                <button x-on:click="showMsgModal = !showMsgModal" class="delete" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+
+                <div class="control is-flex is-flex-direction-column">
+
+                    {% if listing.messages %}
+                    <ul x-data="{hideUserBlocks: false}">
+                        {% for m in listing.messages %}
+
+                        <li class="block" x-data="{
+                                listMessages: false,
+                                blockUser: false,
+                                showDescription: false,
+                            }">
+
+                            <div x-bind:class="hideUserBlocks ? 'is-hidden': ''" class="box has-background-light">
+
+                                <div class="is-flex is-justify-content-space-between is-align-items-center">
+
+                                    <a style="width: 70%;"
+                                        x-on:click="() => markAsReadMessages([{% for mid in m.messages %} '{{ mid.message_id }}', {% endfor %}]); sendMsgToUserId = '{{ m.interested_user_id or m.poster_user_id  }}'; listMessages = !listMessages; disableSendMsg = !disableSendMsg; hideUserBlocks = !hideUserBlocks; showDescription = false;">
+                                        <div x-bind:class="listMessages ? 'is-hidden': ''">
+                                            <div class="is-flex is-align-items-center">
+                                                <div style="position: relative;">
+                                                    <figure class="image is-64x64 overflow-hidden">
+                                                        {% if m.interested_user_avatar or m.poster_user_avatar %}
+                                                        <img loading="lazy"
+                                                            src="{{m.interested_user_avatar or m.poster_user_avatar}}">
+                                                        {% else %}
+                                                        <img loading="lazy" src="/public/avatar.svg">
+                                                        {% endif %}
+                                                    </figure>
+                                                    {% if m.new_messages %}
+                                                    <span class="red-dot"></span>
+                                                    {% endif %}
+                                                </div>
+                                                <h1 class="title is-5 ml-2">{{m.interested_user_nume or
+                                                    m.poster_user_nume }}</h1>
+                                            </div>
+                                        </div>
+                                    </a>
+
+                                    <button x-on:click="showDescription = !showDescription"
+                                        class="button is-light mt-1">
+                                        <svg x-bind:class="showDescription ? 'is-hidden': ''"
+                                            xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="svg"
+                                            viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd"
+                                                d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
+                                        </svg>
+
+                                        <svg x-bind:class="showDescription ? '': 'is-hidden'"
+                                            xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="svg"
+                                            viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd"
+                                                d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z" />
+                                        </svg>
+                                    </button>
+
+                                </div>
+
+                                <div x-bind:class="hideUserBlocks ? 'is-hidden': ''">
+                                    <hr x-bind:class="showDescription ? '': 'is-hidden'" class="mt-2 dropdown-divider">
+                                    <p x-bind:class="showDescription ? '': 'is-hidden'"
+                                        class="has-background-light pb-2 mt-4">
+                                        {{ m.poster_user_description or m.interested_user_description }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div x-bind:class="listMessages ? '': 'is-hidden'"
+                                class="is-flex is-flex-direction-column ">
+
+                                <button
+                                    x-on:click="sendMsgToUserId = '{{ listing.user_id }}'; listMessages = !listMessages; disableSendMsg = !disableSendMsg; hideUserBlocks = !hideUserBlocks; messageSent = null; message = null;"
+                                    class="button is-align-self-flex-end is-light mb-4 ml-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="svg"
+                                        viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd"
+                                            d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z" />
+                                    </svg>
+                                    Inapoi
+                                </button>
+
+                                <div class="content">
+                                    {% for msg in m.messages %}
+                                    <p>
+
+                                        <span class="has-text-grey">
+                                            {{ msg.name }} {{ msg.date }}
+                                        </span>
+
+                                        {% if msg.seen %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                            style="height: 14px; width: 14px; margin-left: 5px">
+                                            <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                                            <path fill-rule="evenodd"
+                                                d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        {% else %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                            style="height: 14px; width: 14px; margin-left: 5px">
+                                            <path fill-rule="evenodd"
+                                                d="M3.28 2.22a.75.75 0 00-1.06 1.06l14.5 14.5a.75.75 0 101.06-1.06l-1.745-1.745a10.029 10.029 0 003.3-4.38 1.651 1.651 0 000-1.185A10.004 10.004 0 009.999 3a9.956 9.956 0 00-4.744 1.194L3.28 2.22zM7.752 6.69l1.092 1.092a2.5 2.5 0 013.374 3.373l1.091 1.092a4 4 0 00-5.557-5.557z"
+                                                clip-rule="evenodd" />
+                                            <path
+                                                d="M10.748 13.93l2.523 2.523a9.987 9.987 0 01-3.27.547c-4.258 0-7.894-2.66-9.337-6.41a1.651 1.651 0 010-1.186A10.007 10.007 0 012.839 6.02L6.07 9.252a4 4 0 004.678 4.678z" />
+                                        </svg>
+                                        {% endif %}
+
+                                        <br>
+
+                                        {{ msg.message }}
+                                    </p>
+                                    {% endfor %}
+
+                                    <div x-cloak x-show="sentMessages.length > 0">
+                                        <hr class="dropdown-divider">
+
+                                        <p class="has-text-grey">
+                                            TIP: reincarca pagina pentru a vedea mesajele noi
+                                        </p>
+                                        <template x-for="msg in sentMessages">
+                                            <p x-text="msg"></p>
+                                        </template>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </li>
+
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>Nici un mesaj momentan...</p>
+                    {% endif %}
+                </div>
+
+            </section>
+
+            <footer class="modal-card-foot modal-card-foot is-flex is-flex-direction-column pb-5">
+                <div class="is-flex is-justify-content-space-between" style="width: 100%; margin-right:1.5rem;">
+                    <input x-on:keyup.enter="sendMessage" x-bind:disabled="disableSendMsg" x-model="message"
+                        name="message" class="input is-medium" type="text" maxlength="300">
+                    <button x-bind:disabled="disableSendMsg" x-bind:class="loading ? 'is-loading' : ''"
+                        x-on:click="sendMessage" class="button is-link is-medium ml-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="svg" viewBox="0 0 16 16">
+                            <path
+                                d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z" />
+                        </svg>
+                    </button>
+                </div>
+                <div x-cloak x-show="messageSent == null">
+                    <p class="help help-text"
+                        x-text="disableSendMsg ? 'Selecteaza un utilizator pentru a trimite un mesaj.' : 'Trimite un mesaj...'">
+                    </p>
+                </div>
+                <div x-cloak x-show="messageSent != null">
+                    <p x-text="messageSent ? 'Mesajul a fost trimis': 'Mesajul nu a putut fi trimis'"
+                        class="help help-text">
+                    </p>
+                </div>
+            </footer>
+
+        </div>
+    </div>
+
+    <div class="modal" x-bind:class="bigImg ? 'is-active': ''">
+        <div x-on:click="bigImg = !bigImg" class="modal-background"></div>
+        <div class="modal-content">
+            <figure class="image is-16by9">
+                <img class="object-fit-contain" src="{{listing.img1}}" alt="">
+            </figure>
+        </div>
+        <button x-on:click="bigImg = !bigImg" class="modal-close is-large" aria-label="close"></button>
+    </div>
+
+    <article class="card mb-6 has-background-light">
+
+        <div class="is-flex is-align-items-center is-justify-content-space-between">
+            <a href="/cda/camera-in-apartament/{{listing.listing_id}}">
+                <h1 class="title is-size-4 mb-4 ml-4 pt-4">
+                    <span class="has-text-primary mr-2">
+                        {{listing.pret}} EUR
+                    </span>
+                    | {{listing.titlu}}
+                </h1>
+            </a>
+
+            <div x-bind:class="showDropDown ? 'is-active': ''" class="dropdown is-right">
+                <div class="dropdown-trigger">
+                    <button x-on:click="showDropDown = !showDropDown" class="button is-light" aria-haspopup="true">
+
+                        <svg x-cloak x-bind:class="showDropDown ? '' : 'is-hidden'" xmlns="http://www.w3.org/2000/svg"
+                            fill="currentColor" class="svg" viewBox="0 0 16 16">
+                            <path
+                                d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z" />
+                        </svg>
+
+                        <svg x-cloak x-bind:class="showDropDown ? 'is-hidden' : ''" xmlns="http://www.w3.org/2000/svg"
+                            fill="currentColor" class="svg" viewBox="0 0 16 16">
+                            <path
+                                d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+                        </svg>
+
+                    </button>
+                </div>
+                <div class="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                        {% if listing.current_user_is_owner %}
+                        <a class="dropdown-item"
+                            x-on:click="showDropDown = !showDropDown; deleteListing('{{listing.listing_id}}')">
+                            Sterge
+                        </a>
+                        {% endif %}
+                        <a x-on:click="navigator.clipboard.writeText(document.location.origin + '/cda/camera-in-apartament/{{listing.listing_id}}'); showDropDown = !showDropDown;"
+                            class="dropdown-item">
+                            Copie linkul
+                        </a>
+                        {% if not listing.current_user_is_owner %}
+                        <a class="dropdown-item" href="/cda/admin/contact?listing_id={{listing.listing_id}}">
+                            Raporteaza
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div x-on:click="bigImg = !bigImg" class="card-image">
+            <figure class="image is-3by1">
+                <img loading="lazy" class="object-fit-cover" src="{{listing.img1}}">
+            </figure>
+        </div>
+
+        <div class="card-content">
+            <div class="media">
+                <div class="media-left">
+
+                    <figure class="image is-64x64 overflow-hidden">
+                        {% if listing.user_avatar %}
+                        <img loading="lazy" src="{{listing.user_avatar}}">
+                        {% else %}
+                        <img loading="lazy" src="/public/avatar.svg">
+                        {% endif %}
+                    </figure>
+
+                </div>
+                <div class="media-content">
+                    <p class="title is-5">{{listing.user_nume}}</p>
+                    <p class="subtitle is-6">
+                        Locatie: <strong>{{listing.oras}}, {{listing.zona}}</strong> |
+                        Adaugat la {{listing.created_at}}
+                    </p>
+                </div>
+            </div>
+            <div class="content">
+                <p>{{listing.descriere}}</p>
+            </div>
+        </div>
+
+        <footer class="card-footer">
+
+            {% if logged %}
+
+            <button x-bind:class="messageSent ? 'is-success': 'is-link'" x-on:click="showMsgModal = !showMsgModal"
+                class="card-footer-item button is-large is-responsive">
+
+                <div x-cloak x-bind:class="messageSent ? '': 'is-hidden'">
+                    Mesajul a fost trimis!
+                </div>
+
+                <div x-bind:class="messageSent ? 'is-hidden': ''">
+                    <span class="mr-3">
+                        {% if listing.current_user_is_owner %}
+
+                        {% if listing.new_messages %}
+                        Ai mesaje noi
+                        {% else %}
+                        Nici un mesaj nou
+                        {% endif %}
+
+                        {% else %}
+
+                        {% if listing.new_messages %}
+                        Ai mesaje noi
+                        {% else %}
+                        Trimite mesaj
+                        {% endif %}
+
+                        {% endif %}
+
+                    </span>
+                    <svg class="svg" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                        <path
+                            d="M16 8c0 3.866-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7zM5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                    </svg>
+                </div>
+
+            </button>
+
+            {% else %}
+
+            <a href="/cda/autentificare" class="card-footer-item button is-link is-large is-responsive">
+                <span class="mr-3">
+                    Trimite mesaj
+                </span>
+                <svg class="svg" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M16 8c0 3.866-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7zM5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                </svg>
+            </a>
+            {% endif %}
+        </footer>
+    </article>
+
+
+</div>
+
+
+{%- endmacro %}
